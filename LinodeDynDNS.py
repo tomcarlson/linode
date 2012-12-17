@@ -31,8 +31,10 @@
 #  linode.com/members/dns/resource_aud.cfm?DomainID=98765&ResourceID=123456
 #                                                                    ^
 # You want 123456. The API key MUST have write access to this resource ID.
+# You also need the DomainID for the domain you are working with
 #
 RESOURCE = "000000"
+DOMAINID = "000000"
 #
 # Your Linode API key.  You can generate this by going to your profile in the
 # Linode manager.  It should be fairly long.
@@ -53,7 +55,7 @@ GETIP = "http://hosted.jedsmith.org/ip.php"
 # different URI for debugging reasons, edit this.  {0} will be replaced with the
 # API key set above, and & will be added automatically for parameters.
 #
-API = "https://api.linode.com/api/?api_key={0}&resultFormat=JSON"
+API = "https://api.linode.com/?api_key={0}&resultFormat=JSON"
 #
 # Comment or remove this line to indicate that you edited the options above.
 #
@@ -122,19 +124,19 @@ def ip():
 
 def main():
 	try:
-		res = execute("domainResourceGet", {"ResourceID": RESOURCE})["DATA"]
+		res = execute("domainResourceGet", {"ResourceID": RESOURCE, "DOMAINID":DOMAINID})["DATA"]
 		if(len(res)) == 0:
 			raise Exception("No such resource?".format(RESOURCE))
 		public = ip()
-		if res["TARGET"] != public:
-			old = res["TARGET"]
+		if res[0]["TARGET"] != public:
+			old = res[0]["TARGET"]
 			request = {
-				"ResourceID": res["RESOURCEID"],
-				"DomainID": res["DOMAINID"],
-				"Name": res["NAME"],
-				"Type": res["TYPE"],
+				"ResourceID": res[0]["RESOURCEID"],
+				"DomainID": res[0]["DOMAINID"],
+				"Name": res[0]["NAME"],
+				"Type": res[0]["TYPE"],
 				"Target": public,
-				"TTL_Sec": res["TTL_SEC"]
+				"TTL_Sec": res[0]["TTL_SEC"]
 			}
 			execute("domainResourceSave", request)
 			print("OK {0} -> {1}".format(old, public))
